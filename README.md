@@ -20,5 +20,16 @@ $ conda create -n mini-rag python=3.8
 ```bash
 $ conda activate mini-rag
 ```
+## Installation
 
+### Install the required packages 
 
+```bash
+$ pip install -r requirements.txt
+```
+### Setup the envirnment variables 
+
+```bash
+$ cp .env.example .env
+```
+Set your envirnment variables in the `.env` file like `LLM_API_KEY` value.
