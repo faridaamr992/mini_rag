@@ -2,6 +2,14 @@ from stores.llm.LLMInterface import LLMInterface
 from stores.llm.LLMEnums import CoHereEnums,DocumentTypeEnum
 import cohere
 import logging
+import time
+from cohere.errors import TooManyRequestsError
+from typing import List
+import random
+import re 
+import unicodedata
+from cohere.core.api_error import ApiError
+
 
 class CoHereProvider(LLMInterface):
 
@@ -30,8 +38,8 @@ class CoHereProvider(LLMInterface):
         self.embedding_model_id=model_id
         self.embedding_size=embedding_size
 
-    def process_text(self, text:str):
-        return text[:self.default_input_max_characters].strip()
+    #def process_text(self, text:str):
+    #    return text[:self.default_input_max_characters].strip()
     
     def generate_text(self,prompt:str,chat_history: list=[],max_output_tokens:int=None,
                       temperature:float=None):
@@ -65,7 +73,34 @@ class CoHereProvider(LLMInterface):
             "text":self.process_text(prompt)
         }
     
-    def embed_text(self,text:str,document_type:str = None):
+
+
+    def process_text(self, text: str) -> str:
+        """
+        Clean and normalize text before sending to the embedding model.
+        - Removes citation-like patterns [4]
+        - Removes non-ASCII characters (e.g., IPA, symbols)
+        - Normalizes whitespace
+        """
+        try:
+            # Remove citations like [1], [12], etc.
+            text = re.sub(r'\[\d+\]', '', text)
+
+            # Normalize unicode (e.g., strip IPA like ˌ from 'ˌænɪˈmeɪliə')
+            text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")
+
+            # Replace multiple spaces or newlines with a single space
+            text = re.sub(r'\s+', ' ', text)
+
+            # Strip surrounding whitespace
+            return text.strip()
+        
+        except Exception as e:
+            self.logger.error(f"Error while cleaning text: {e}")
+            return text  # return original as fallback
+
+
+    def embed_text(self,text:str, document_type:str = None):
         
         if not self.client:
             self.logger.error("CoHere client was not set")
@@ -78,12 +113,22 @@ class CoHereProvider(LLMInterface):
         if document_type == DocumentTypeEnum.QUERY:
             input_type = CoHereEnums.QUERY
 
-        response = self.client.embed(
-            model = self.embedding_model_id,
-            texts=  [self.process_text(text)],
-            input_type=input_type,
-            embedding_types=['float']
-        )
+        try:
+           # print('*************text:', text)
+            response = self.client.embed(
+                model = self.embedding_model_id,
+                texts=  [self.process_text(text)],
+                input_type=input_type,
+                embedding_types=['float']
+            )
+
+        except ApiError as e:
+            self.logger.error(f"CoHere API error (status {e.status_code}): {e.body}")
+            return None
+        except Exception as e:
+            self.logger.exception("Unexpected error during CoHere embedding")
+            return None
+        
 
         if not response or not response.embeddings or not response.embeddings.float:
             self.logger.error("Error while embedding text with CoHere")

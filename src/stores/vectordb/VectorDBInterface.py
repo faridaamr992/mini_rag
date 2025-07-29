@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List,Optional,Any
 
 class VectorDBInterface(ABC):
 
@@ -41,9 +41,15 @@ class VectorDBInterface(ABC):
            pass
     
     @abstractmethod
-    def insert_many(self, collection_name:str,texts:str,vectors:list,
-                   metadata: dict = None,
-                   record_ids: str = None, batch_size: int=50):
+    def insert_many(
+    self,
+    collection_name: str,
+    texts: List[str],
+    vectors: List[list],
+    metadata: Optional[List[dict]] = None,
+    record_ids: Optional[List[Any]] = None,
+    batch_size: int = 50
+) -> bool:
            pass
     
     @abstractmethod

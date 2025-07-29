@@ -2,6 +2,7 @@ from stores.llm.LLMInterface import LLMInterface
 from openai import OpenAI
 import logging
 from stores.llm.LLMEnums import OpenAIEnums
+from typing import List
 
 class OpenAIProvider(LLMInterface):
 
