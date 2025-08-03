@@ -39,8 +39,8 @@ class CoHereProvider(LLMInterface):
         self.embedding_model_id=model_id
         self.embedding_size=embedding_size
 
-    #def process_text(self, text:str):
-    #    return text[:self.default_input_max_characters].strip()
+    def process_text(self, text:str):
+        return text[:self.default_input_max_characters].strip()
     
     def generate_text(self,prompt:str,chat_history: list=[],max_output_tokens:int=None,
                       temperature:float=None):
@@ -71,34 +71,33 @@ class CoHereProvider(LLMInterface):
     def construct_prompt(self,prompt:str,role:str):
         return {
             "role": role,
-            "text":self.process_text(prompt)
+            "text":prompt,
         }
     
 
 
-    def process_text(self, text: str) -> str:
-        """
-        Clean and normalize text before sending to the embedding model.
-        - Removes citation-like patterns [4]
-        - Removes non-ASCII characters (e.g., IPA, symbols)
-        - Normalizes whitespace
-        """
-        try:
+    #def process_text(self, text: str) -> str:
+        # Clean and normalize text before sending to the embedding model.
+        #- Removes citation-like patterns [4]
+        #- Removes non-ASCII characters (e.g., IPA, symbols)
+        #- Normalizes whitespace
+        #"""
+        #try:
             # Remove citations like [1], [12], etc.
-            text = re.sub(r'\[\d+\]', '', text)
+        #    text = re.sub(r'\[\d+\]', '', text)
 
             # Normalize unicode (e.g., strip IPA like ˌ from 'ˌænɪˈmeɪliə')
-            text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")
+        #    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")
 
             # Replace multiple spaces or newlines with a single space
-            text = re.sub(r'\s+', ' ', text)
+         #   text = re.sub(r'\s+', ' ', text)
 
             # Strip surrounding whitespace
-            return text.strip()
+        #    return text.strip()
         
-        except Exception as e:
-            self.logger.error(f"Error while cleaning text: {e}")
-            return text  # return original as fallback
+        #except Exception as e:
+        #    self.logger.error(f"Error while cleaning text: {e}")
+        #    return text  # return original as fallback
 
 
     def embed_text(self,text:str, document_type:str = None):
