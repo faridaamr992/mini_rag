@@ -43,14 +43,9 @@ class VectorDBInterface(ABC):
     
     @abstractmethod
     def insert_many(
-    self,
-    collection_name: str,
-    texts: List[str],
-    vectors: List[list],
-    metadata: Optional[List[dict]] = None,
-    record_ids: Optional[List[Any]] = None,
-    batch_size: int = 50
-) -> bool:
+        self,collection_name: str,texts: list,
+        vectors: list,metadata: list = None,
+        record_ids: list = None,batch_size: int = 50):
            pass
     
     @abstractmethod
